@@ -1,0 +1,171 @@
+<div class="min-h-screen p-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-zinc-900 dark:to-zinc-800">
+    <div class="max-w-2xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8">
+            <a href="<?php echo e(route('subscription.pricing')); ?>" class="inline-flex items-center gap-2 text-purple-600 dark:text-purple-400 hover:underline mb-4">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Back to Pricing
+            </a>
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Complete Your Purchase</h1>
+            <p class="text-gray-600 dark:text-gray-400 mt-2">Secure payment for <?php echo e($plan['name']); ?> plan</p>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="bg-white dark:bg-zinc-800 rounded-2xl p-6 mb-6 border border-gray-100 dark:border-zinc-700">
+            <div class="flex items-center justify-between pb-6 border-b border-gray-100 dark:border-zinc-700">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white"><?php echo e($plan['name']); ?> Plan</h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Billed <?php echo e($plan['period']); ?>ly</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-3xl font-bold text-gray-900 dark:text-white">$<?php echo e($plan['price']); ?></p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">/ <?php echo e($plan['period']); ?></p>
+                </div>
+            </div>
+
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($planId === 'go'): ?>
+            <div class="mt-6">
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-3">Includes:</h3>
+                <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                    <li class="flex items-start gap-2">
+                        <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
+                        </svg>
+                        <span>Explore topics in depth</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
+                        </svg>
+                        <span>Chat longer and upload files</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
+                        </svg>
+                        <span>Access to all features</span>
+                    </li>
+                </ul>
+            </div>
+            <?php elseif($planId === 'plus'): ?>
+            <div class="mt-6">
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-3">Includes:</h3>
+                <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                    <li class="flex items-start gap-2">
+                        <svg class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
+                        </svg>
+                        <span>Solve complex problems</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <svg class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
+                        </svg>
+                        <span>GPT-4.0 access & future features</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <svg class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
+                        </svg>
+                        <span>Priority support</span>
+                    </li>
+                </ul>
+            </div>
+            <?php else: ?>
+            <div class="mt-6">
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-3">Includes:</h3>
+                <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                    <li class="flex items-start gap-2">
+                        <svg class="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
+                        </svg>
+                        <span>Master advanced tasks</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <svg class="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
+                        </svg>
+                        <span>Blue tick (verified profile)</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <svg class="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
+                        </svg>
+                        <span>Priority 24/7 support</span>
+                    </li>
+                </ul>
+            </div>
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+        </div>
+
+        <!-- Payment Form -->
+        <form wire:submit="processPayment" class="bg-white dark:bg-zinc-800 rounded-2xl p-6 border border-gray-100 dark:border-zinc-700">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Billing Information</h2>
+
+            <!-- Full Name -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
+                <input
+                    wire:model="fullName"
+                    type="text"
+                    class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white">
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['fullName'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="text-red-500 text-sm mt-1"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+            </div>
+
+            <!-- Email -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
+                <input
+                    wire:model="email"
+                    type="email"
+                    class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white">
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['email'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> <p class="text-red-500 text-sm mt-1"><?php echo e($message); ?></p> <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Payment Method</label>
+                <div class="space-y-2">
+                    <label class="flex items-center p-3 border border-gray-200 dark:border-zinc-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-700">
+                        <input type="radio" wire:model="paymentMethod" value="card" class="w-4 h-4">
+                        <span class="ml-3 text-gray-900 dark:text-white">Credit/Debit Card</span>
+                    </label>
+                    <label class="flex items-center p-3 border border-gray-200 dark:border-zinc-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-700">
+                        <input type="radio" wire:model="paymentMethod" value="bank" class="w-4 h-4">
+                        <span class="ml-3 text-gray-900 dark:text-white">Bank Transfer</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button
+                type="submit"
+                wire:loading.attr="disabled"
+                class="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                <span wire:loading.remove>Complete Purchase - $<?php echo e($plan['price']); ?></span>
+                <span wire:loading>Processing...</span>
+            </button>
+
+            <!-- Secure Payment Notice -->
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
+                🔒 Your payment is secure and encrypted
+            </p>
+        </form>
+    </div>
+</div><?php /**PATH C:\www\shark\resources\views/livewire/checkout.blade.php ENDPATH**/ ?>

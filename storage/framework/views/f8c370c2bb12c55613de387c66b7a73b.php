@@ -1,0 +1,2 @@
+<img src="/images/shark-gpt-icon.png" alt="Shark GPT" <?php echo e($attributes->merge(['class' => 'size-8'])); ?> style="object-fit: contain;" />
+<?php /**PATH C:\www\shark\resources\views/components/app-logo-icon.blade.php ENDPATH**/ ?>
