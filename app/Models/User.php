@@ -41,16 +41,16 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'settings' => 'array',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'settings' => 'array',
+        'is_verified' => 'boolean',
+    ];
 
     public function initials(): string
     {
@@ -84,5 +84,10 @@ class User extends Authenticatable
     public function canUseGPT4(): bool
     {
         return $this->hasActiveSubscription();
+    }
+
+    public function hasVerifiedBadge(): bool
+    {
+        return (bool) $this->is_verified;
     }
 }

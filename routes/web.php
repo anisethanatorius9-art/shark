@@ -47,6 +47,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/orders', \App\Livewire\OrderTableComponent::class)->name('orders.index');
 
     Route::get('/chats/create', \App\Livewire\ChatCreateComponent::class)->name('chats.create');
+    Route::get('/app/{identifier}', \App\Livewire\ChatShowComponent::class)->name('chats.session.show');
     Route::get('/chats/{uuid}', \App\Livewire\ChatShowComponent::class)->name('chats.show');
     Route::post('/chats/{uuid}/messages', [MessageController::class, 'store'])->name('messages.store');
 
@@ -137,7 +138,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/subscription/process-payment', [SubscriptionController::class, 'processPayment'])->name('subscription.process-payment');
     Route::get('/subscription/success', [SubscriptionController::class, 'success'])->name('subscription.success');
     Route::get('/subscription/cancel', [SubscriptionController::class, 'cancel'])->name('subscription.cancel');
-
+    Route::get('/subscription/google-play/verify', [\App\Http\Controllers\GooglePlaySubscriptionController::class, 'showVerifyForm'])->name('subscription.google-play.verify.form');
+    Route::post('/subscription/google-play/verify', [\App\Http\Controllers\GooglePlaySubscriptionController::class, 'verify'])->name('subscription.google-play.verify.post');
 
     Route::get('/settings/profile', \App\Livewire\Settings\ProfileComponent::class)->name('settings.profile');
     Volt::route('settings/password', 'settings.password')->name('settings.password');

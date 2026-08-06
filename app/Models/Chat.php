@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 class Chat extends Model
 {
     use HasFactory;
-    protected $fillable = ['user_id', 'title', 'uuid', 'project_id', 'last_message_at', 'last_read_at'];
+    protected $fillable = ['user_id', 'title', 'uuid', 'project_id', 'session_id', 'last_message_at', 'last_read_at'];
 
     protected $casts = [
         'user_id' => 'integer',

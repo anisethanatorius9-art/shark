@@ -5,7 +5,7 @@
             <!-- Header -->
             <div class="text-center mb-16">
                 <span class="inline-block px-4 py-1.5 bg-indigo-100 text-indigo-700 text-sm font-semibold rounded-full mb-4">
-                     Premium Plans
+                    Premium Plans
                 </span>
                 <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
                     Choose Your Perfect Plan
@@ -23,7 +23,7 @@
                     <!-- Popular Badge -->
                     @if($index === 1)
                     <div class="absolute top-0 left-0 right-0 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-center py-2 text-sm font-semibold">
-                         Most Popular
+                        Most Popular
                     </div>
                     @endif
 
@@ -82,6 +82,20 @@
                 </div>
                 @endforeach
             </div>
+
+            <div class="mt-12 text-center">
+                <p class="text-gray-700 dark:text-gray-300 mb-4">Purchased through Google Play?</p>
+                <a href="{{ route('subscription.google-play.verify.form') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-full shadow-lg hover:from-cyan-700 hover:to-blue-700 transition">
+                    <span>Verify Google Play Purchase</span>
+                </a>
+            </div>
+
+            @if(auth()->check() && auth()->user()->hasVerifiedBadge())
+            <div class="mt-8 rounded-3xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700 p-5 text-center">
+                <p class="text-sm font-semibold text-emerald-800 dark:text-emerald-200">Your account is already verified with Google Play.</p>
+                <p class="text-sm text-emerald-700 dark:text-emerald-300 mt-1">Enjoy full subscription access and verified badge benefits.</p>
+            </div>
+            @endif
 
             <!-- Trust Badges -->
             <div class="mt-16 text-center">

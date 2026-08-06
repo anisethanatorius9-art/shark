@@ -55,9 +55,12 @@ class ChatShowComponent extends Component
         $this->selectedModel = $model;
     }
 
-    public function mount($uuid)
+    public function mount($identifier)
     {
-        $chat = Auth::user()->chats()->where('uuid', $uuid)->firstOrFail();
+        $chat = Auth::user()->chats()
+            ->where('uuid', $identifier)
+            ->orWhere('session_id', $identifier)
+            ->firstOrFail();
 
         $this->chat = $chat;
         $this->loadMessages();
@@ -151,7 +154,7 @@ class ChatShowComponent extends Component
         $this->isTyping = true;
 
         // Broadcast typing indicator
-        $this->dispatch('user-typing', Auth::id())->toOthers();
+        $this->dispatch('user-typing', Auth::id());
 
         try {
             // Create user message with 'sent' status
@@ -167,7 +170,7 @@ class ChatShowComponent extends Component
             $this->uploadedFile = null;
 
             // Broadcast message sent
-            $this->dispatch('message-sent', $userMessage->id)->toOthers();
+            $this->dispatch('message-sent', $userMessage->id);
 
             // Generate AI response
             $this->generateAIResponse();
@@ -175,7 +178,7 @@ class ChatShowComponent extends Component
             \Log::error('Error sending message: ' . $e->getMessage());
         } finally {
             $this->isTyping = false;
-            $this->dispatch('user-stopped-typing', Auth::id())->toOthers();
+            $this->dispatch('user-stopped-typing', Auth::id());
             $this->isLoading = false;
         }
     }
@@ -239,7 +242,7 @@ class ChatShowComponent extends Component
                         messageId: $aiMessage->id,
                         content: $response,
                         delay: $chunkDelay
-                    )->toOthers();
+                    );
 
                     // Small delay between chunks for better UX
                     usleep($chunkDelay * 1000);
@@ -267,7 +270,7 @@ class ChatShowComponent extends Component
 
             $this->loadMessages();
             $this->dispatch('ai-response-generated');
-            $this->dispatch('message-added', $aiMessage->id)->toOthers();
+            $this->dispatch('message-added', $aiMessage->id);
         } catch (\Exception $e) {
             \Log::error('AI Response Error: ' . $e->getMessage());
 
@@ -297,7 +300,7 @@ class ChatShowComponent extends Component
 
         $message->delete();
         $this->loadMessages();
-        $this->dispatch('message-deleted', $messageId)->toOthers();
+        $this->dispatch('message-deleted', $messageId);
     }
 
     public function renameChat($newName = null)

@@ -20,7 +20,7 @@ class CheckoutComponent extends Component
     protected $rules = [
         'fullName' => 'required|string|max:255',
         'email' => 'required|email',
-        'paymentMethod' => 'required|in:card,bank',
+        'paymentMethod' => 'required|in:card,wallet',
     ];
 
     public function mount($plan)
@@ -63,10 +63,17 @@ class CheckoutComponent extends Component
                 'unit_amount' => $this->plan['price'] * 100, // cents
             ];
 
+            $paymentMethods = ['card'];
+            if ($this->paymentMethod === 'wallet') {
+                // Stripe Checkout will surface Apple Pay / Google Pay automatically
+                // when the browser supports it and the Stripe account is configured.
+                $paymentMethods = ['card'];
+            }
+
             if ($this->plan['period'] === 'day') {
                 // For daily, use one-time payment
                 $session = $stripe->checkout->sessions->create([
-                    'payment_method_types' => ['card'],
+                    'payment_method_types' => $paymentMethods,
                     'line_items' => [[
                         'price_data' => $priceData,
                         'quantity' => 1,
@@ -91,7 +98,7 @@ class CheckoutComponent extends Component
                 ]);
 
                 $session = $stripe->checkout->sessions->create([
-                    'payment_method_types' => ['card'],
+                    'payment_method_types' => $paymentMethods,
                     'line_items' => [[
                         'price' => $price->id,
                         'quantity' => 1,
@@ -110,7 +117,7 @@ class CheckoutComponent extends Component
             }
 
             $this->isProcessing = false;
-            return redirect($session->url);
+            return redirect()->away($session->url);
         } catch (\Exception $e) {
             $this->isProcessing = false;
             $this->dispatch('payment-error', 'Payment processing failed: ' . $e->getMessage());

@@ -1,0 +1,27 @@
+<?php
+
+return [
+    'new_chat' => 'Chat Mpya',
+    'search' => 'Tafuta',
+    'dashboard' => 'Dashibodi',
+    'projects' => 'Miradi',
+    'help_today' => 'Ninawezaje kusaidia leo?',
+    'message_placeholder' => 'Tuma ujumbe kwa SharkGPT...',
+    'project_optional' => 'Mradi (hiari):',
+    'no_project' => 'Hakuna mradi',
+    'ai_disclaimer' => 'AI inaweza kufanya makosa. Tafadhali hakikisha taarifa muhimu.',
+    'recent' => 'Za hivi karibuni',
+    'library' => 'Maktaba',
+    'apps' => 'Programu',
+    'settings' => 'Mipangilio',
+    'log_out' => 'Toka',
+    'new_group_chat' => 'Chat ya Kikundi Mpya',
+    'chat_with_friends' => 'Chat na marafiki',
+    'message_streaming' => 'Ujumbe wa Streaming',
+    'explore_apps' => 'Chunguza Programu',
+    'subscription' => 'Usajili',
+    'sidebar_dashboard' => 'Dashibodi ya Sidebar',
+    'app_name' => 'Shark GPT',
+    'recent_chats' => 'Chat za Karibuni',
+    'no_recent_chats' => 'Hakuna chat za karibuni bado',
+];

@@ -187,7 +187,7 @@ class SubscriptionController extends Controller
                         // Send email notification
                         Mail::raw("Dear {$user->name},\n\nThank you for subscribing to Shark AI {$metadata['plan_name']} plan!\n\nYour payment has been processed successfully.\nSubscription details:\n- Plan: {$metadata['plan_name']}\n- Amount: $" . ($session->amount_total / 100) . "\n- Status: Active\n\nYou now have access to all premium features.\n\nBest regards,\nShark AI Team", function ($message) use ($user) {
                             $message->to($user->email)
-                                    ->subject('Shark AI Subscription Activated');
+                                ->subject('Shark AI Subscription Activated');
                         });
 
                         $plan = $metadata['plan_id'];
@@ -207,7 +207,7 @@ class SubscriptionController extends Controller
             }
         }
 
-        // Fallback for bank transfer
+        // Fallback for bank transfer or when Stripe does not return a session ID
         $plan = $request->query('plan', 'plus');
         $plans = [
             'go' => ['name' => 'Go', 'price' => 6, 'period' => 'day'],
@@ -215,8 +215,9 @@ class SubscriptionController extends Controller
             'pro' => ['name' => 'Pro', 'price' => 240, 'period' => 'year'],
         ];
         $planData = $plans[$plan] ?? $plans['plus'];
+        $statusNote = 'If you were redirected here without a Stripe session ID, your payment may still be processing. Please check your email for a receipt, or contact support if you do not receive confirmation soon.';
 
-        return view('subscription.success', compact('plan', 'planData'));
+        return view('subscription.success', compact('plan', 'planData', 'statusNote'));
     }
 
     public function cancel()

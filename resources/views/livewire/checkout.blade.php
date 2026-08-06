@@ -133,25 +133,26 @@
                         <span class="ml-3 text-gray-900 dark:text-white">Credit/Debit Card</span>
                     </label>
                     <label class="flex items-center p-3 border border-gray-200 dark:border-zinc-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-700">
-                        <input type="radio" wire:model="paymentMethod" value="bank" class="w-4 h-4">
-                        <span class="ml-3 text-gray-900 dark:text-white">Bank Transfer</span>
+                        <input type="radio" wire:model="paymentMethod" value="wallet" class="w-4 h-4">
+                        <span class="ml-3 text-gray-900 dark:text-white">Wallet / Apple Pay / Google Pay</span>
                     </label>
                 </div>
-            </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Your browser will show available wallet payments when supported. After clicking Complete Purchase, Stripe Checkout will redirect you to the payment screen.</p>
+                @if($paymentMethod === 'wallet')
+                <p class="text-xs text-blue-600 dark:text-blue-300 mt-2">If your device supports it, Google Pay or Apple Pay will appear in the Stripe checkout window.</p>
+                @endif
 
-            <!-- Submit Button -->
-            <button
-                type="submit"
-                wire:loading.attr="disabled"
-                class="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                <span wire:loading.remove>Complete Purchase - ${{ $plan['price'] }}</span>
-                <span wire:loading>Processing...</span>
-            </button>
+                <button type="submit"
+                    wire:loading.attr="disabled"
+                    class="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span wire:loading.remove>Complete Purchase - ${{ $plan['price'] }}</span>
+                    <span wire:loading>Processing...</span>
+                </button>
 
-            <!-- Secure Payment Notice -->
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
-                🔒 Your payment is secure and encrypted
-            </p>
+                <!-- Secure Payment Notice -->
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
+                    🔒 Your payment is secure and encrypted
+                </p>
         </form>
     </div>
 </div>

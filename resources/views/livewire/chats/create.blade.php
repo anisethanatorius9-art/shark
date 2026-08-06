@@ -5,6 +5,7 @@
                 <div class="rounded-[2rem] border border-slate-200/80 bg-white/90 shadow-2xl shadow-slate-200/20 backdrop-blur-xl dark:border-zinc-800/80 dark:bg-zinc-900/90">
                     <div class="grid gap-8 lg:grid-cols-[1.3fr,_0.7fr]">
                         <div class="p-8 lg:p-10">
+                            @if(empty($messages))
                             <div class="flex flex-col gap-4">
                                 <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                                     <div>
@@ -13,14 +14,7 @@
                                         <p class="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-400">Type your question below. Try asking: "Does it provide answers or is it unsure?"</p>
                                     </div>
                                     <div class="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 dark:border-zinc-700 dark:bg-zinc-950 dark:text-slate-300">
-                                        ChatGPT style
-                                    </div>
-                                </div>
-
-                                @if(empty($this->messages))
-                                <div class="grid gap-4 sm:grid-cols-2">
-                                    <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6 dark:border-zinc-800 dark:bg-zinc-950">
-                                        <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Starter prompts</h2>
+                                        AI response style
                                         <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Click a suggestion or type your question.</p>
                                         <div class="mt-5 grid gap-3">
                                             <button type="button" wire:click="setPrompt('Does it provide answers?')" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-medium text-slate-900 hover:border-slate-300 hover:bg-slate-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:hover:border-zinc-600 dark:hover:bg-zinc-800">Does it provide answers?</button>
@@ -39,9 +33,15 @@
                                 </div>
                                 @endif
 
-                                @if(!empty($this->messages))
+                                @if(!empty($messages))
+                                @if($chat && $chat->session_id)
+                                <div class="mb-4 rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-slate-400">
+                                    <span class="font-semibold text-slate-700 dark:text-slate-200">System / Session ID:</span>
+                                    {{ $chat->session_id }}
+                                </div>
+                                @endif
                                 <div class="space-y-4 mt-4">
-                                    @foreach($this->messages as $message)
+                                    @foreach($messages as $message)
                                     <div class="flex {{ $message['role'] === 'user' ? 'justify-end' : 'justify-start' }}">
                                         <div class="max-w-2xl rounded-3xl px-5 py-4 leading-7 whitespace-pre-wrap {{ $message['role'] === 'user' ? 'bg-blue-600 text-white shadow-2xl' : 'bg-slate-100 text-slate-900 dark:bg-zinc-800 dark:text-white' }}">
                                             {{ $message['content'] }}
@@ -49,7 +49,7 @@
                                     </div>
                                     @endforeach
 
-                                    @if($this->isLoading)
+                                    @if($isLoading)
                                     <div class="flex justify-start">
                                         <div class="flex items-center gap-2 rounded-3xl bg-slate-100 px-4 py-3 dark:bg-zinc-800">
                                             <span class="h-2 w-2 animate-bounce rounded-full bg-slate-500 dark:bg-slate-400"></span>
@@ -63,6 +63,7 @@
                             </div>
                         </div>
 
+                        @if(empty($messages))
                         <div class="border-l border-slate-200/90 bg-slate-50 p-8 dark:border-zinc-800/90 dark:bg-zinc-950 lg:p-10">
                             <div class="space-y-6">
                                 <div>
@@ -72,7 +73,7 @@
                                 <div class="grid gap-3">
                                     <div class="rounded-3xl border border-slate-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
                                         <p class="text-sm text-slate-600 dark:text-slate-400">Example question</p>
-                                        <p class="mt-2 text-sm font-medium text-slate-900 dark:text-white">Does this chatbot provide accurate answers like ChatGPT?</p>
+                                        <p class="mt-2 text-sm font-medium text-slate-900 dark:text-white">Does this Ai provide accurate answers?</p>
                                     </div>
                                     <div class="rounded-3xl border border-slate-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
                                         <p class="text-sm text-slate-600 dark:text-slate-400">Tip</p>
@@ -81,12 +82,13 @@
                                 </div>
                             </div>
                         </div>
+                        @endif
                     </div>
 
                     <div class="border-t border-slate-200/80 dark:border-zinc-800/80 bg-slate-50 dark:bg-zinc-900">
                         <div class="px-6 py-6">
                             <div class="max-w-4xl mx-auto">
-                                @if(!$this->chat)
+                                @if(!$chat)
                                 <form wire:submit.prevent="createChat" class="space-y-3">
                                     <div class="relative flex items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
                                         <input type="file" id="fileUpload" class="hidden" wire:change="handleFileUpload">
@@ -97,6 +99,7 @@
                                         </button>
                                         <textarea
                                             wire:model.live="initialMessage"
+                                            wire:keydown.enter.prevent="createChat"
                                             placeholder="Ask anything..."
                                             class="flex-1 bg-transparent text-slate-900 dark:text-white text-base placeholder-slate-400 dark:placeholder-slate-500 border-0 focus:outline-none resize-none"
                                             rows="1"
@@ -119,7 +122,7 @@
                                     @error('initialMessage')
                                     <flux:error>{{ $message }}</flux:error>
                                     @enderror
-                                    @if(count($this->projects) > 0)
+                                    @if(count($projects) > 0)
                                     <div class="flex items-center gap-3 flex-wrap mt-3">
                                         <flux:label>Project (optional)</flux:label>
                                         <flux:select wire:model="projectId" class="flex-1 min-w-max">
@@ -167,7 +170,7 @@
                                     @enderror
                                 </form>
                                 @endif
-                                    <p class="text-center text-xs text-slate-500 dark:text-slate-400 mt-2">AI can make mistakes. Please verify important information before using it.</p>
+                                <p class="text-center text-xs text-slate-500 dark:text-slate-400 mt-2">AI can make mistakes. Please verify important information before using it.</p>
                             </div>
                         </div>
                     </div>
@@ -212,6 +215,11 @@
         };
 
         const selectedModel = localStorage.getItem('selected_model') || 'gpt-4-turbo';
-        Livewire.find('@this.id').set('selectedModel', selectedModel);
+        document.addEventListener('livewire:load', () => {
+            const component = window.Livewire && window.Livewire.find('{{ $_instance->getId() }}');
+            if (component && typeof component.set === 'function') {
+                component.set('selectedModel', selectedModel);
+            }
+        });
     });
 </script>

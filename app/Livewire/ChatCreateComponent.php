@@ -7,6 +7,7 @@ use App\Models\Message;
 use App\Models\Project;
 use App\Services\AIService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -14,6 +15,11 @@ use Livewire\WithFileUploads;
 class ChatCreateComponent extends Component
 {
     use WithFileUploads;
+
+    protected $rules = [
+        'initialMessage' => 'required|string|max:4000',
+    ];
+
     public $initialMessage = '';
     public $projectId = null;
     public $projects = [];
@@ -22,7 +28,6 @@ class ChatCreateComponent extends Component
     public $messages = [];
     public $chat = null;
     public $selectedModel = 'gpt-4-turbo';
-    public $id;
 
     public function mount()
     {
@@ -33,6 +38,38 @@ class ChatCreateComponent extends Component
     public function setSelectedModel($model)
     {
         $this->selectedModel = $model;
+    }
+
+    public function setPrompt($prompt)
+    {
+        $this->initialMessage = $prompt;
+    }
+
+    protected function buildConversationHistory(): array
+    {
+        $history = array_map(function ($message) {
+            return [
+                'role' => $message['role'] ?? 'user',
+                'content' => $message['content'] ?? '',
+            ];
+        }, $this->messages);
+
+        if (!empty($history) && end($history)['role'] === 'user') {
+            array_pop($history);
+        }
+
+        return $history;
+    }
+
+    protected function getLastUserMessage(): string
+    {
+        for ($i = count($this->messages) - 1; $i >= 0; $i--) {
+            if (($this->messages[$i]['role'] ?? '') === 'user') {
+                return $this->messages[$i]['content'] ?? '';
+            }
+        }
+
+        return $this->initialMessage;
     }
 
     public function createChat()
@@ -47,6 +84,7 @@ class ChatCreateComponent extends Component
         $chat = $user->chats()->create([
             'title' => $title,
             'uuid' => Str::uuid(),
+            'session_id' => Str::random(16),
             'project_id' => $this->projectId,
         ]);
 
@@ -62,11 +100,10 @@ class ChatCreateComponent extends Component
         // Add user message to messages array
         $this->messages[] = $userMessage->toArray();
 
-        // Generate AI response immediately
-        $this->generateAIResponse();
-
-        // Clear the initial message
+        // Reset input text and redirect to the session URL
         $this->initialMessage = '';
+
+        return redirect()->route('chats.session.show', $chat->session_id);
     }
 
     public function generateAIResponse()
@@ -75,7 +112,8 @@ class ChatCreateComponent extends Component
 
         try {
             $aiService = new AIService();
-            $response = $aiService->getResponse($this->messages[0]['content'], [], $this->selectedModel);
+            $conversationHistory = $this->buildConversationHistory();
+            $response = $aiService->getResponse($this->getLastUserMessage(), $conversationHistory, $this->selectedModel);
 
             \Log::info('AI Response received', ['response_length' => strlen($response), 'response_preview' => substr($response, 0, 100)]);
 
@@ -152,7 +190,7 @@ class ChatCreateComponent extends Component
 
     public function render()
     {
-        return view('livewire.chats.create')
+        return View::make('livewire.chats.create')
             ->layout('components.layouts.app');
     }
 }

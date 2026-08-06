@@ -47,6 +47,22 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'google_play' => [
+        'package_name' => env('GOOGLE_PLAY_PACKAGE_NAME'),
+        'service_account_json' => env('GOOGLE_PLAY_SERVICE_ACCOUNT_JSON'),
+        'service_account_path' => env('GOOGLE_PLAY_SERVICE_ACCOUNT_PATH'),
+        // Google Play verification requires either:
+        // 1) GOOGLE_PLAY_SERVICE_ACCOUNT_JSON containing the full JSON credentials,
+        // or
+        // 2) GOOGLE_PLAY_SERVICE_ACCOUNT_PATH pointing to the JSON key file.
+        // Ensure the service account has access to the Android Publisher API.
+        'products' => [
+            'go' => env('GOOGLE_PLAY_PRODUCT_GO', 'go'),
+            'plus' => env('GOOGLE_PLAY_PRODUCT_PLUS', 'plus'),
+            'pro' => env('GOOGLE_PLAY_PRODUCT_PRO', 'pro'),
+        ],
+    ],
+
     'ollama' => [
         'url' => env('OLLAMA_URL', 'http://localhost:11434'),
         'model' => env('OLLAMA_MODEL', 'llama3.2:1b'),

@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\User;
+use App\Services\AIService;
 use Livewire\Attributes\Validate;
 
 class StreamingSettingsComponent extends Component
@@ -34,6 +35,30 @@ class StreamingSettingsComponent extends Component
      * @var bool
      */
     public bool $isSaving = false;
+
+    /**
+     * Streaming test output
+     * @var string
+     */
+    public string $testOutput = '';
+
+    /**
+     * Whether a streaming test is currently running
+     * @var bool
+     */
+    public bool $isTesting = false;
+
+    /**
+     * Notification message for the page
+     * @var string
+     */
+    public string $notificationMessage = '';
+
+    /**
+     * Notification type for the page
+     * @var string
+     */
+    public string $notificationType = 'success';
 
     /**
      * Available models
@@ -123,11 +148,41 @@ class StreamingSettingsComponent extends Component
     public function testStreaming()
     {
         if (!$this->streamingEnabled) {
-            $this->dispatch('notify', message: 'Please enable streaming first!', type: 'warning');
+            $this->notificationType = 'warning';
+            $this->notificationMessage = 'Please enable streaming first!';
             return;
         }
 
-        $this->dispatch('test-streaming', model: $this->selectedModel);
+        $this->isTesting = true;
+        $this->testOutput = '';
+        $this->notificationType = 'info';
+        $this->notificationMessage = 'Running streaming test...';
+
+        try {
+            $aiService = new AIService();
+            $prompt = 'Generate a short example of a streaming response from Shark AI in a friendly tone.';
+
+            $response = '';
+            foreach ($aiService->getStreamingResponse($prompt, [], $this->selectedModel) as $chunk) {
+                $response .= $chunk;
+            }
+
+            if (empty(trim($response))) {
+                $response = 'Streaming test completed, but no response was returned. Please check your API settings.';
+            }
+
+            $this->testOutput = trim($response);
+            $this->notificationType = 'success';
+            $this->notificationMessage = 'Streaming test completed successfully.';
+        } catch (\Throwable $e) {
+            \Log::error('Streaming test error: ' . $e->getMessage());
+            $this->notificationType = 'error';
+            $this->notificationMessage = 'Streaming test failed. Please check your network and API credentials.';
+            $this->testOutput = '';
+        } finally {
+            $this->isTesting = false;
+            $this->dispatch('test-streaming', model: $this->selectedModel);
+        }
     }
 
     /**

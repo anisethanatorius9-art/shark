@@ -1,10 +1,10 @@
-<x-layouts.app title="SharkGPT">
+<x-layouts.app title="Shark AI">
     <div class="h-screen flex flex-col bg-gray-50">
 
         <!-- Header -->
         <header class="flex items-center px-6 py-4">
             <h1 class="text-xl font-semibold text-gray-900 tracking-tight">
-                SHARK GPT
+                SHARK AI
             </h1>
         </header>
 
@@ -23,7 +23,7 @@
 
                     <!-- Quick Options -->
                     <div class="grid grid-cols-3 gap-3 max-w-lg mx-auto">
-                        <button onclick="selectQuickOption('chatgpt')" class="p-3 bg-white rounded-xl shadow-sm hover:shadow transition text-sm">
+                        <button onclick="selectQuickOption('assistant')" class="p-3 bg-white rounded-xl shadow-sm hover:shadow transition text-sm">
                             Chat
                         </button>
                         <button onclick="selectQuickOption('dalle')" class="p-3 bg-white rounded-xl shadow-sm hover:shadow transition text-sm">
@@ -84,7 +84,7 @@
                         <textarea id="message-input"
                             name="message"
                             rows="1"
-                            placeholder="Message SharkGPT..."
+                            placeholder="Ask anything..."
                             class="flex-1 resize-none bg-transparent outline-none text-gray-800 placeholder-gray-400 text-[15px] leading-relaxed max-h-40"
                             oninput="autoResize(this)"
                             onkeydown="handleKeydown(event)"
@@ -123,7 +123,7 @@
                     </div>
 
                     <p class="text-center text-xs text-gray-400 mt-3">
-                        SharkGPT can make mistakes.
+                        AI can make mistakes. Please verify important information.
                     </p>
 
                 </form>
@@ -211,7 +211,7 @@
         function selectQuickOption(type) {
             const input = document.getElementById('message-input');
 
-            if (type === 'chatgpt') input.value = "Hello...";
+            if (type === 'assistant') input.value = "Hello...";
             if (type === 'dalle') input.value = "Create an image of ";
             if (type === 'search') input.value = "Search for ";
 

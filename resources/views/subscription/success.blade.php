@@ -45,6 +45,14 @@
                                 <p class="text-sm text-gray-500">{{ $planData['period'] }}ly</p>
                             </div>
                         </div>
+                        @if(auth()->check() && auth()->user()->hasVerifiedBadge())
+                        <div class="mt-6 inline-flex items-center gap-2 rounded-full bg-emerald-100 dark:bg-emerald-900/30 px-4 py-2 text-sm font-semibold text-emerald-800 dark:text-emerald-200">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 12.586 7.707 11.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            Google Play verified badge active
+                        </div>
+                        @endif
                     </div>
 
                     <!-- What's Included -->
@@ -110,6 +118,13 @@
 
                     <!-- Action Buttons -->
                     <div class="flex flex-col sm:flex-row gap-4">
+                        <a href="{{ route('subscription.google-play.verify.form') }}" class="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg hover:shadow-xl flex items-center justify-center gap-2 text-center">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            Verify Google Play Purchase
+                        </a>
+
                         <a href="{{ route('dashboard') }}"
                             class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg hover:shadow-xl flex items-center justify-center gap-2 text-center">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,6 +150,12 @@
                     </div>
                 </div>
             </div>
+
+            @if(!empty($statusNote))
+            <div class="mt-6 rounded-2xl bg-yellow-50 border border-yellow-200 p-4 text-sm text-yellow-800">
+                {{ $statusNote }}
+            </div>
+            @endif
 
             <!-- Transaction Details -->
             <div class="mt-6 text-center text-sm text-gray-500">

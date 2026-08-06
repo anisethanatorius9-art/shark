@@ -17,4 +17,11 @@ return [
     'log_out' => 'Log out',
     'new_group_chat' => 'New Group Chat',
     'chat_with_friends' => 'Chat with friends',
+    'message_streaming' => 'Message Streaming',
+    'explore_apps' => 'Explore Apps',
+    'subscription' => 'Subscription',
+    'sidebar_dashboard' => 'Sidebar Dashboard',
+    'app_name' => 'Shark GPT',
+    'recent_chats' => 'Recent Chats',
+    'no_recent_chats' => 'No recent chats yet',
 ];

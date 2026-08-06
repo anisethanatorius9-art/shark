@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
 use OpenRouter\Client;
 
 class AIService
@@ -32,23 +33,33 @@ class AIService
      */
     public function getResponse(string $message, array $conversationHistory = [], ?string $model = null): string
     {
-        $model = $model ?? config('services.ai.default_model', self::DEFAULT_MODEL);
+        $model = $model ?? Config::get('services.ai.default_model', self::DEFAULT_MODEL);
 
         \Log::info('AI Request started', ['model' => $model, 'message_length' => strlen($message)]);
 
+        $messages = $this->buildConversationMessages($message, $conversationHistory);
+
         // Try OpenRouter with specified model first (supports GPT-4 and many others)
         \Log::info('Attempting OpenRouter API...');
-        $openRouterResponse = $this->getOpenRouterResponse($message, $conversationHistory, $model);
+        $openRouterResponse = $this->getOpenRouterResponse($messages, $model);
 
         if ($openRouterResponse) {
             \Log::info('OpenRouter API succeeded');
             return $openRouterResponse;
         }
 
-        \Log::info('OpenRouter API failed, trying Groq...');
+        \Log::info('OpenRouter API failed, trying OpenAI direct...');
+        $openAIResponse = $this->getOpenAIResponse($messages, $model);
+
+        if ($openAIResponse) {
+            \Log::info('OpenAI direct API succeeded');
+            return $openAIResponse;
+        }
+
+        \Log::info('OpenAI direct API failed, trying Groq...');
 
         // Fallback to default providers if specific model fails
-        $groqResponse = $this->getGroqResponse($message, $conversationHistory);
+        $groqResponse = $this->getGroqResponse($messages);
 
         if ($groqResponse) {
             return $groqResponse;
@@ -83,42 +94,47 @@ class AIService
         return $this->getFallbackResponse($message);
     }
 
+    private function buildConversationMessages(string $message, array $history): array
+    {
+        $messages = [];
+
+        $messages[] = [
+            'role' => 'system',
+            'content' => $this->getSystemPrompt(),
+        ];
+
+        foreach ($history as $msg) {
+            $messages[] = [
+                'role' => $msg['role'] ?? 'user',
+                'content' => $msg['content'] ?? '',
+            ];
+        }
+
+        $lastMessage = end($messages);
+        if (!$lastMessage || !isset($lastMessage['content']) || trim($lastMessage['content']) !== trim($message)) {
+            $messages[] = [
+                'role' => 'user',
+                'content' => $message,
+            ];
+        }
+
+        return $messages;
+    }
+
     /**
      * Get response from Groq (free AI API)
      */
-    private function getGroqResponse(string $message, array $history): ?string
+    private function getGroqResponse(array $messages): ?string
     {
-        $apiKey = config('services.groq.api_key');
+        $apiKey = Config::get('services.groq.api_key');
 
         if (empty($apiKey)) {
             return null;
         }
 
         try {
-            $model = config('services.groq.model', 'llama-3.1-70b-versatile');
+            $model = Config::get('services.groq.model', 'llama-3.1-70b-versatile');
 
-            // Build conversation context
-            $messages = [];
-
-            // Add system message - IMPROVED for general purpose
-            $messages[] = [
-                'role' => 'system',
-                'content' => 'You are Shark AI, a helpful, friendly, and knowledgeable AI assistant. Always provide accurate, factual, and correct answers to any questions. Double-check information for accuracy. You can help with: answering questions on any topic, writing and explaining code in any programming language, solving problems, having conversations, providing explanations, and much more. Be concise but thorough. Provide accurate and helpful responses.'
-            ];
-
-            // Add conversation history
-            foreach ($history as $msg) {
-                $messages[] = [
-                    'role' => $msg['role'] ?? 'user',
-                    'content' => $msg['content'] ?? ''
-                ];
-            }
-
-            // Add current message
-            $messages[] = [
-                'role' => 'user',
-                'content' => $message
-            ];
 
             $response = Http::timeout(30)
                 ->withHeaders([
@@ -146,9 +162,9 @@ class AIService
     /**
      * Get response from OpenRouter (supports GPT-4, Claude, Llama, etc.)
      */
-    private function getOpenRouterResponse(string $message, array $history, ?string $model = null): ?string
+    private function getOpenRouterResponse(array $messages, ?string $model = null): ?string
     {
-        $apiKey = env('OPENROUTER_API_KEY');
+        $apiKey = getenv('OPENROUTER_API_KEY');
 
         \Log::info('OpenRouter check', ['has_api_key' => !empty($apiKey), 'key_length' => $apiKey ? strlen($apiKey) : 0]);
 
@@ -172,28 +188,6 @@ class AIService
 
             $routerModel = $modelMap[$model] ?? $model ?? 'mistralai/mistral-7b-instruct';
 
-            // Build conversation context
-            $messages = [];
-
-            // Add system message - IMPROVED for general purpose conversation
-            $messages[] = [
-                'role' => 'system',
-                'content' => 'You are Shark AI, a helpful, friendly, and knowledgeable AI assistant. Always provide accurate, factual, and correct answers to any questions. Double-check information for accuracy. You can help with: answering questions on any topic, writing and explaining code in any programming language, solving problems, having conversations, providing explanations, and much more. Be concise but thorough. Provide accurate and helpful responses. When users ask for code, provide complete working examples with proper syntax. When users ask about graphs/charts, respond with code in [PYTHON] tags using matplotlib/seaborn/plotly. Also support [CHART] tags for JSON: {"type": "bar|line|pie|doughnut", "title": "Title", "labels": ["A"], "data": [10]}. Provide explanation before code.'
-            ];
-
-            // Add conversation history
-            foreach ($history as $msg) {
-                $messages[] = [
-                    'role' => $msg['role'] ?? 'user',
-                    'content' => $msg['content'] ?? ''
-                ];
-            }
-
-            // Add current message
-            $messages[] = [
-                'role' => 'user',
-                'content' => $message
-            ];
 
             // Use OpenRouter API with proper routing
             $response = Http::timeout(60)
@@ -228,9 +222,9 @@ class AIService
     /**
      * Get response from OpenAI API directly (for GPT-4)
      */
-    private function getOpenAIResponse(string $message, array $history, string $model = 'gpt-4o'): ?string
+    private function getOpenAIResponse(array $messages, string $model = 'gpt-4o'): ?string
     {
-        $apiKey = env('OPENAI_API_KEY');
+        $apiKey = getenv('OPENAI_API_KEY');
 
         if (empty($apiKey)) {
             return null;
@@ -247,30 +241,7 @@ class AIService
 
             $openAIModel = $modelMap[$model] ?? 'gpt-4o';
 
-            // Build conversation context
-            $messages = [];
-
-            // Add system message
-            $messages[] = [
-                'role' => 'system',
-                'content' => 'You are Shark AI, a helpful, friendly, and knowledgeable AI assistant. Always provide accurate, factual, and correct answers to any questions. Double-check information for accuracy. When users ask for code in any programming language (Python, JavaScript, PHP, Java, C++, Ruby, Go, Rust, TypeScript, SQL, etc.), provide complete, working code examples with proper syntax. When users ask for graphs/charts using Python, respond with code in [PYTHON] tags using matplotlib/seaborn/plotly. Also support [CHART] tags for JSON: {"type": "bar|line|pie|doughnut", "title": "Title", "labels": ["A"], "data": [10]}. Provide explanation before code.'
-            ];
-
-            // Add conversation history
-            foreach ($history as $msg) {
-                $messages[] = [
-                    'role' => $msg['role'] ?? 'user',
-                    'content' => $msg['content'] ?? ''
-                ];
-            }
-
-            // Add current message
-            $messages[] = [
-                'role' => 'user',
-                'content' => $message
-            ];
-
-            // Use OpenAI API directly
+            // Use the already-built conversation payload
             $response = Http::timeout(60)
                 ->withHeaders([
                     'Authorization' => 'Bearer ' . $apiKey,
@@ -311,14 +282,14 @@ class AIService
         // Try using a free AI API
         try {
             // Use Cohere's free API (has free tier)
-            $response = Http::timeout(15)
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . getenv('COHERE_API_KEY'),
+                'Content-Type' => 'application/json',
+            ])->timeout(15)
                 ->post('https://api.cohere.ai/v1/chat', [
                     'model' => 'command-r',
                     'message' => $message,
                     'max_tokens' => 300
-                ], [
-                    'Authorization' => 'Bearer ' . env('COHERE_API_KEY', ''),
-                    'Content-Type' => 'application/json'
                 ]);
 
             if ($response->successful()) {
@@ -388,6 +359,11 @@ class AIService
     /**
      * Get instant answer from DuckDuckGo API
      */
+    private function getSystemPrompt(): string
+    {
+        return 'You are Shark AI, a helpful, friendly, and knowledgeable AI assistant. Always provide accurate, factual, and correct answers to any questions. Double-check information for accuracy. You can help with: answering questions on any topic, writing and explaining code in any programming language, solving problems, having conversations, providing explanations, and much more. Be concise but thorough. Provide accurate and helpful responses. Answer questions about education, programming, medical, pharmacy, doctor, college, and university topics when they are safe and appropriate. Do not refuse unless the content is unsafe. When users ask for code in any programming language (Python, JavaScript, PHP, Java, C++, Ruby, Go, Rust, TypeScript, SQL, etc.), provide complete, working code examples with proper syntax. When users ask for graphs/charts using Python, respond with code in [PYTHON] tags using matplotlib/seaborn/plotly. Also support [CHART] tags for JSON: {"type": "bar|line|pie|doughnut", "title": "Title", "labels": ["A"], "data": [10]}. Provide explanation before code.';
+    }
+
     private function getInstantAnswer(string $query): ?string
     {
         \Log::info('DuckDuckGo API call starting...');
@@ -446,7 +422,7 @@ class AIService
      */
     private function getOllamaResponse(string $message, array $history): ?string
     {
-        $ollamaUrl = config('services.ollama.url', 'http://localhost:11434');
+        $ollamaUrl = Config::get('services.ollama.url', 'http://localhost:11434');
 
         try {
             // Build conversation context
@@ -455,7 +431,7 @@ class AIService
             // Add system prompt
             $messages[] = [
                 'role' => 'system',
-                'content' => 'You are a helpful and accurate AI programming . When users ask for code in any programming language (Python, JavaScript, PHP, Java, C++, Ruby, Go, Rust, TypeScript, SQL, etc.), provide complete, working code examples with proper syntax. When users ask for graphs/charts using Python, respond with code in [PYTHON] tags using matplotlib/seaborn/plotly. Also support [CHART] tags for JSON: {"type": "bar|line|pie|doughnut", "title": "Title", "labels": ["A"], "data": [10]}. Provide explanation before code.'
+                'content' => $this->getSystemPrompt()
             ];
 
             // Add conversation history
@@ -474,7 +450,7 @@ class AIService
 
             $response = Http::timeout(60)
                 ->post("{$ollamaUrl}/api/chat", [
-                    'model' => config('services.ollama.model', 'llama3.2'),
+                    'model' => Config::get('services.ollama.model', 'llama3.2'),
                     'messages' => $messages,
                     'stream' => false,
                 ]);
@@ -602,15 +578,15 @@ class AIService
         // Generate a helpful response based on the question type
         if (preg_match('/^(what is|what are|what\'s)/i', $message)) {
             $topic = preg_replace('/^(what is|what are|what\'s)\s+/i', '', $message);
-            return "I'd be happy to help explain what **" . ucfirst($topic) . "** is!\n\nUnfortunately, I'm having trouble connecting to my knowledge base right now.\n\nTry:\n• Asking me again in a moment\n• Phrasing your question differently\n• Checking back once Ollama finishes downloading\n\nWould you like me to try answering in a different way?";
+            return "I'd be happy to help explain **" . ucfirst($topic) . "** based on the information I have. If you need more detail, please provide a more specific question or example so I can give you a clear answer.";
         }
 
         if (preg_match('/^(how do|how can|how to)/i', $message)) {
-            return "That's a great question! \n\nI'm having some trouble connecting to my knowledge base at the moment, but I'd love to help you with that.\n\nCould you try asking again in a few moments? Or perhaps rephrase your question?\n\nIn the meantime, I can try to help if you tell me more about what you're trying to accomplish.";
+            return "That's a great question! I can help explain the steps you need. Please try asking again with the exact task or example, and I will give you a clear, practical answer.";
         }
 
         if (preg_match('/^(why is|why does|why did)/i', $message)) {
-            return "That's an interesting question about why something is the way it is! \n\nI'm having some trouble connecting to my knowledge base right now, but I'd love to help you with that.\n\nCould you try again in a moment? Or perhaps rephrase the question?";
+            return "That's an interesting question. I can help explain why that happens. Please ask it again with a bit more context so I can give you a precise and useful answer.";
         }
 
         // Default engaging response
@@ -651,17 +627,19 @@ class AIService
      */
     public function getStreamingResponse(string $message, array $conversationHistory = [], ?string $model = null, ?callable $onChunk = null)
     {
-        $model = $model ?? config('services.ai.default_model', self::DEFAULT_MODEL);
-        $apiKey = env('OPENROUTER_API_KEY');
+        $model = $model ?? Config::get('services.ai.default_model', self::DEFAULT_MODEL);
+        $apiKey = getenv('OPENROUTER_API_KEY');
 
         if (empty($apiKey)) {
             \Log::warning('OpenRouter API key is empty for streaming');
-            yield $this->getResponse($message, $conversationHistory, $model);
-            return;
+            $response = $this->getResponse($message, $conversationHistory, $model);
+            if ($onChunk) {
+                call_user_func($onChunk, $response);
+            }
+            return $response;
         }
 
         try {
-            // Map model aliases to OpenRouter model IDs
             $modelMap = [
                 'gpt-4o' => 'openai/gpt-4o',
                 'gpt-4-turbo' => 'openai/gpt-4-turbo',
@@ -675,16 +653,12 @@ class AIService
 
             $routerModel = $modelMap[$model] ?? $model ?? 'mistralai/mistral-7b-instruct';
 
-            // Build conversation context
             $messages = [];
-
-            // Add system message
             $messages[] = [
                 'role' => 'system',
                 'content' => 'You are Shark AI, a helpful, friendly, and knowledgeable AI assistant. Always provide accurate, factual, and correct answers to any questions. Be concise but thorough. Provide accurate and helpful responses.'
             ];
 
-            // Add conversation history
             foreach ($conversationHistory as $msg) {
                 $messages[] = [
                     'role' => $msg['role'] ?? 'user',
@@ -692,62 +666,77 @@ class AIService
                 ];
             }
 
-            // Add current message
             $messages[] = [
                 'role' => 'user',
                 'content' => $message
             ];
 
-            // Use curl for streaming support
-            $ch = curl_init();
-            curl_setopt_array($ch, [
-                CURLOPT_URL => 'https://openrouter.ai/api/v1/chat/completions',
-                CURLOPT_RETURNTRANSFER => false,
-                CURLOPT_HTTPHEADER => [
-                    'Authorization: Bearer ' . $apiKey,
-                    'Content-Type: application/json',
-                    'HTTP-Referer: https://sharkgpt.com',
-                    'X-Title: Shark AI'
-                ],
-                CURLOPT_POST => true,
-                CURLOPT_POSTFIELDS => json_encode([
-                    'model' => $routerModel,
-                    'messages' => $messages,
-                    'max_tokens' => 4096,
-                    'temperature' => 0.3,
-                    'stream' => true
-                ]),
-                CURLOPT_TIMEOUT => 60,
-                CURLOPT_WRITEFUNCTION => function ($curl, $data) use ($onChunk) {
-                    // Parse server-sent events
-                    $lines = explode("\n", $data);
+            $chunks = [];
+            $buffer = '';
 
-                    foreach ($lines as $line) {
-                        if (strpos($line, 'data: ') === 0) {
-                            $json = substr($line, 6);
-                            if ($json === '[DONE]') {
-                                break;
-                            }
+            $ch = curl_init('https://openrouter.ai/api/v1/chat/completions');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, false);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 120);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+                'model' => $routerModel,
+                'messages' => $messages,
+                'max_tokens' => 4096,
+                'temperature' => 0.3,
+                'stream' => true,
+            ]));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Authorization: Bearer ' . $apiKey,
+                'Content-Type' => 'application/json',
+                'HTTP-Referer' => 'https://sharkgpt.com',
+                'X-Title: Shark AI',
+            ]);
+            curl_setopt($ch, CURLOPT_WRITEFUNCTION, function ($curl, $data) use (&$buffer, &$chunks, $onChunk) {
+                $buffer .= $data;
+                while (($pos = strpos($buffer, "\n")) !== false) {
+                    $line = substr($buffer, 0, $pos);
+                    $buffer = substr($buffer, $pos + 1);
 
-                            $chunk = json_decode($json, true);
-                            if (isset($chunk['choices'][0]['delta']['content'])) {
-                                $content = $chunk['choices'][0]['delta']['content'];
-                                if ($onChunk) {
-                                    call_user_func($onChunk, $content);
-                                }
-                                yield $content;
-                            }
-                        }
+                    $line = trim($line);
+                    if ($line === '' || !str_starts_with($line, 'data:')) {
+                        continue;
                     }
 
-                    return strlen($data);
+                    $payload = trim(substr($line, 5));
+                    if ($payload === '[DONE]') {
+                        break;
+                    }
+
+                    $chunk = json_decode($payload, true);
+                    if (!empty($chunk['choices'][0]['delta']['content'])) {
+                        $content = $chunk['choices'][0]['delta']['content'];
+                        $chunks[] = $content;
+                        if ($onChunk) {
+                            call_user_func($onChunk, $content);
+                        }
+                    }
                 }
-            ]);
+
+                return strlen($data);
+            });
 
             curl_exec($ch);
+            $curlError = curl_error($ch);
+            curl_close($ch);
+
+            if (!empty($curlError)) {
+                \Log::error('OpenRouter streaming curl error: ' . $curlError);
+                yield $this->getResponse($message, $conversationHistory, $model);
+                return;
+            }
+
+            foreach ($chunks as $chunk) {
+                yield $chunk;
+            }
+            return;
         } catch (\Exception $e) {
             \Log::error('OpenRouter streaming error: ' . $e->getMessage());
-            yield $this->getResponse($message, $conversationHistory, $model);
+            return $this->getResponse($message, $conversationHistory, $model);
         }
     }
 }

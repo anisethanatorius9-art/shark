@@ -1,9 +1,6 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<!-- Alpine.js for interactive components -->
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
 <title>{{ $title ?? config('app.name') }}</title>
 
 <link rel="icon" href="/favicon.ico?v={{ time() }}" type="image/x-icon">

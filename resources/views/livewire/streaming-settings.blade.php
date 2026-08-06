@@ -219,28 +219,55 @@
             </div>
 
             <!-- Action Buttons -->
-            <div class="flex gap-4">
-                <button
-                    wire:click="testStreaming"
-                    type="button"
-                    @disabled(!$streamingEnabled)
-                    @class([ 'flex-1 px-6 py-3 rounded-xl transition-all duration-150 font-medium inline-flex items-center justify-center gap-2' , 'bg-blue-600 hover:bg-blue-700 text-white'=> $streamingEnabled,
-                    'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed' => !$streamingEnabled,
-                    ])
-                    wire:loading.attr="disabled"
-                    wire:target="testStreaming">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                    Test Streaming
-                </button>
+            <div class="flex flex-col gap-4">
+                <div class="flex gap-4 flex-col lg:flex-row">
+                    <button
+                        wire:click="testStreaming"
+                        type="button"
+                        @disabled(!$streamingEnabled)
+                        @class([ 'flex-1 px-6 py-3 rounded-xl transition-all duration-150 font-medium inline-flex items-center justify-center gap-2' , 'bg-blue-600 hover:bg-blue-700 text-white'=> $streamingEnabled,
+                        'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed' => !$streamingEnabled,
+                        ])
+                        wire:loading.attr="disabled"
+                        wire:target="testStreaming">
+                        @if($isTesting)
+                        <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                        Testing...
+                        @else
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Test Streaming
+                        @endif
+                    </button>
 
-                <a href="{{ route('chats.create') }}" class="flex-1 px-6 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white transition-all font-medium text-center inline-flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Try Streaming Chat
-                </a>
+                    <a href="{{ route('chats.create') }}" class="flex-1 px-6 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white transition-all font-medium text-center inline-flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Try Streaming Chat
+                    </a>
+                </div>
+
+                @if($notificationMessage)
+                <div @class([ 'rounded-2xl p-4 text-sm font-medium' , 'bg-green-50 text-green-800 border border-green-200'=> $notificationType === 'success',
+                    'bg-yellow-50 text-yellow-800 border border-yellow-200' => $notificationType === 'warning',
+                    'bg-blue-50 text-blue-800 border border-blue-200' => $notificationType === 'info',
+                    'bg-rose-50 text-rose-800 border border-rose-200' => $notificationType === 'error',
+                    ])>
+                    {{ $notificationMessage }}
+                </div>
+                @endif
+
+                @if($testOutput)
+                <div class="rounded-3xl border border-gray-200 dark:border-zinc-700 p-6 bg-gray-50 dark:bg-zinc-950">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Streaming Test Output</h3>
+                    <pre class="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">{{ $testOutput }}</pre>
+                </div>
+                @endif
             </div>
         </div>
 

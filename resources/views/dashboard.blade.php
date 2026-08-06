@@ -72,7 +72,27 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Plan</p>
-                            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ auth()->user()->subscription?->name ?? 'Free' }}</p>
+                            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ auth()->user()->subscription?->plan ?? 'Free' }}</p>
+                            @if(auth()->user()->hasVerifiedBadge())
+                            <div class="space-y-2 mt-3">
+                                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 12.586 7.707 11.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                    </svg>
+                                    Verified Badge
+                                </span>
+                                <p class="text-sm text-blue-700 dark:text-blue-300">Your Google Play subscription has been verified and is active.</p>
+                            </div>
+                            @else
+                            <div class="mt-3">
+                                <a href="{{ route('subscription.google-play.verify.form') }}" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-200 dark:hover:bg-zinc-700 transition">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M8.257 3.099c.366-.446.957-.598 1.48-.364l7.428 3.68a1 1 0 01.535.86v6.722a1 1 0 01-.535.86l-7.428 3.68a1 1 0 01-1.48-.364L3 12.118V7.882l5.257-4.783zM13 16.06V7.94L7.639 4.24 13 0v16.06z" />
+                                    </svg>
+                                    Verify Google Play purchase
+                                </a>
+                            </div>
+                            @endif
                         </div>
                         <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
                             <svg class="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
