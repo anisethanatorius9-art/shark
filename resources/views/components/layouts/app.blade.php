@@ -7,46 +7,15 @@
     @livewireStyles
 </head>
 
-<body class="min-h-screen bg-white dark:bg-zinc-800 antialiased" x-data="{ sidebarOpen: localStorage.getItem('sidebarOpen') === null ? window.innerWidth >= 1024 : JSON.parse(localStorage.getItem('sidebarOpen')), showSearch: false }">
+<body class="min-h-screen bg-white dark:bg-zinc-800 antialiased" x-data="{ sidebarOpen: false, showSearch: false }">
     @auth
     <flux:sidebar sticky collapsible="mobile" class="bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700" x-show="sidebarOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 transform -translate-x-full" x-transition:enter-end="opacity-100 transform translate-x-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 transform translate-x-0" x-transition:leave-end="opacity-0 transform -translate-x-full">
-        <flux:sidebar.header>
-            <div class="flex items-center gap-3">
-                <x-app-logo-icon class="size-8" />
-                <div>
-                    <div class="text-sm font-semibold" data-lang-key="app_name">SHARK GPT</div>
-                    <div class="text-xs text-zinc-500 dark:text-zinc-400" data-lang-key="sidebar_dashboard">Sidebar Dashboard</div>
-                </div>
-            </div>
-            <flux:sidebar.collapse class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2" />
-        </flux:sidebar.header>
 
-        <flux:sidebar.item icon="home" href="{{ route('dashboard') }}" wire:navigate>
-            <span data-lang-key="dashboard">@lang('messages.dashboard')</span>
-        </flux:sidebar.item>
-
-        <flux:sidebar.item icon="chat-bubble-left" href="{{ route('chats.create') }}" wire:navigate>
-            <span data-lang-key="new_chat">@lang('messages.new_chat')</span>
-        </flux:sidebar.item>
-
-        <flux:sidebar.item icon="users" href="{{ route('chats.group.create') }}" wire:navigate>
-            <span data-lang-key="new_group_chat">@lang('messages.new_group_chat')</span>
-        </flux:sidebar.item>
-
-        <flux:sidebar.item icon="bolt" href="{{ route('chats.streaming.settings') }}" wire:navigate>
-            <span data-lang-key="message_streaming">@lang('messages.message_streaming')</span>
-        </flux:sidebar.item>
-
-        <flux:sidebar.item icon="cube" href="{{ route('apps.index') }}" wire:navigate>
-            <span data-lang-key="explore_apps">@lang('messages.explore_apps')</span>
-        </flux:sidebar.item>
-
-        <flux:sidebar.spacer />
 
         <!-- Projects Group -->
-        <flux:sidebar.group expandable :heading="__('messages.projects')" class="grid">
+        <flux:sidebar.group expandable heading="Projects" class="grid">
             <flux:sidebar.item icon="plus" href="{{ route('projects.create') }}" wire:navigate>
-                <span data-lang-key="projects">@lang('messages.projects')</span>
+                New Project
             </flux:sidebar.item>
             @if(auth()->user()->projects()->count() > 0)
             @foreach(auth()->user()->projects()->latest()->take(10)->get() as $project)
@@ -57,19 +26,26 @@
             @endif
         </flux:sidebar.group>
 
-        <flux:sidebar.group expandable :heading="__('messages.recent_chats')" class="grid">
+        <!-- Group Chat -->
+        <flux:sidebar.item icon="users" href="{{ route('chats.group.create') }}" wire:navigate>
+            New Group Chat
+        </flux:sidebar.item>
+
+        <flux:sidebar.spacer />
+
+        <!-- Chats Section -->
+        <flux:sidebar.nav>
+            <div class="px-3 py-2">
+                <div class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Your chats</div>
+            </div>
             @if(auth()->user()->chats()->count() > 0)
             @foreach(auth()->user()->chats()->latest()->take(30)->get() as $chat)
             <flux:sidebar.item icon="chat-bubble-left" href="{{ route('chats.show', $chat->uuid) }}" wire:navigate>
                 {{ $chat->title }}
             </flux:sidebar.item>
             @endforeach
-            @else
-            <flux:sidebar.item icon="sparkles" as="span" class="opacity-70">
-                @lang('messages.no_recent_chats')
-            </flux:sidebar.item>
             @endif
-        </flux:sidebar.group>
+        </flux:sidebar.nav>
 
         <!-- User Profile -->
         <flux:dropdown position="top" align="start" class="max-lg:hidden">
@@ -112,25 +88,169 @@
         </flux:dropdown>
     </flux:sidebar>
 
-    <div class="fixed top-4 left-4 z-50">
-        <button type="button" @click="sidebarOpen = !sidebarOpen; localStorage.setItem('sidebarOpen', sidebarOpen)" class="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-200 shadow-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition" aria-label="Toggle sidebar">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-        </button>
-    </div>
+    <flux:header container class="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-700 sticky top-0 z-50">
+        <!-- Sidebar Toggle Button -->
+        <flux:sidebar.toggle @click="sidebarOpen = !sidebarOpen" class="lg:hidden" icon="bars-2" inset="left" />
 
-    <div class="fixed top-4 right-4 z-50 flex flex-col items-end gap-3">
-        <a href="{{ route('subscription.pricing') }}" class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-violet-500/20 hover:opacity-95 transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 8v8m4-4H8m10 4a8 8 0 11-16 0 8 8 0 0116 0z" />
-            </svg>
-            @lang('messages.subscription')
+        <!-- App Logo and Brand -->
+        <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
+            <x-app-logo />
         </a>
-        <div class="bg-white/90 dark:bg-zinc-900/90 border border-zinc-200 dark:border-zinc-700 rounded-full shadow-sm p-1">
+
+        <!-- Main Navigation -->
+        <flux:navbar class="-mb-px max-lg:hidden">
+            <flux:navbar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
+                Dashboard
+            </flux:navbar.item>
+        </flux:navbar>
+
+        <flux:spacer />
+
+
+        <!-- Model Selector in Header -->
+        <flux:navbar class="me-1.5 rtl:space-x-reverse py-0!" x-data="{
+                    open: false,
+                    selected: 'GPT-3.5',
+                    isPremium: {{ auth()->user()->canUseGPT4() ? 'true' : 'false' }},
+                    updateModel(model, value) {
+                        this.selected = model;
+                        this.open = false;
+                        // Store selected model in localStorage for quick chat
+                        localStorage.setItem('selected_model', value);
+                    }
+                }">
+            <button
+                @click="open = !open"
+                class="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 rounded-lg text-sm font-medium transition-colors border border-gray-200 dark:border-zinc-700">
+                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span class="text-green-600 dark:text-green-400 font-medium" x-text="selected"></span>
+                <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <div x-show="open" @click.outside="open=false" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" class="absolute right-0 mt-2 w-56 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl shadow-lg z-50 overflow-hidden">
+                <div class="py-1">
+
+                    <!-- Premium models (only for subscribers) -->
+                    <template x-if="isPremium">
+                        <div>
+                            <div class="px-4 py-1.5 text-xs text-gray-500 bg-gray-50 dark:bg-zinc-700 dark:text-gray-400 font-medium">Premium Models</div>
+                            <button @click="updateModel('GPT-4o', 'gpt-4o')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 flex items-center justify-between">
+                                <span class="flex items-center gap-2">
+                                    <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
+                                    GPT-4o
+                                </span>
+                                <span x-show="selected === 'GPT-4o'" class="text-green-500">✓</span>
+                            </button>
+                            <button @click="updateModel('GPT-4 Turbo', 'gpt-4-turbo')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 flex items-center justify-between">
+                                <span class="flex items-center gap-2">
+                                    <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
+                                    GPT-4 Turbo
+                                </span>
+                                <span x-show="selected === 'GPT-4 Turbo'" class="text-green-500">✓</span>
+                            </button>
+                            <button @click="updateModel('GPT-4', 'gpt-4')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 flex items-center justify-between">
+                                <span class="flex items-center gap-2">
+                                    <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
+                                    GPT-4
+                                </span>
+                                <span x-show="selected === 'GPT-4'" class="text-green-500">✓</span>
+                            </button>
+                            <div class="border-t border-gray-200 dark:border-zinc-700 my-1"></div>
+                        </div>
+                    </template>
+
+                    <!-- Free models -->
+                    <div class="px-4 py-1.5 text-xs text-gray-500 bg-gray-50 dark:bg-zinc-700 dark:text-gray-400 font-medium">{{ auth()->user()->canUseGPT4() ? 'All Models' : 'Free Models' }}</div>
+                    <button @click="updateModel('GPT-3.5', 'gpt-3.5-turbo')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                            GPT-3.5 Turbo
+                        </span>
+                        <span x-show="selected === 'GPT-3.5'" class="text-green-500">✓</span>
+                    </button>
+                    <button @click="updateModel('Llama 70B', 'llama-3.1-70b')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-orange-500 rounded-full"></span>
+                            Llama 3.1 70B
+                        </span>
+                        <span x-show="selected === 'Llama 70B'" class="text-green-500">✓</span>
+                    </button>
+                    <button @click="updateModel('Mistral 7B', 'mistral-7b')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                            Mistral 7B
+                        </span>
+                        <span x-show="selected === 'Mistral 7B'" class="text-green-500">✓</span>
+                    </button>
+
+                    <!-- Upgrade link for free users -->
+                    <template x-if="!isPremium">
+                        <div class="border-t border-gray-200 dark:border-zinc-700 mt-1 pt-1">
+                            <a href="{{ route('subscription.pricing') }}" class="block px-4 py-2 text-sm text-center bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:from-violet-700 hover:to-purple-700">
+                                Upgrade to Premium
+                            </a>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </flux:navbar>
+
+        <!-- Language Selector -->
+        <flux:navbar class="p-0 text-sm font-normal">
             <x-language-selector />
-        </div>
-    </div>
+        </flux:navbar>
+
+        <!-- Search Button -->
+        <flux:navbar class="p-0 text-sm font-normal">
+            <flux:navbar.item icon="magnifying-glass" href="#" @click="showSearch = !showSearch" label="Search" />
+        </flux:navbar>
+
+        <flux:spacer />
+
+        <!-- Desktop User Menu -->
+        <flux:dropdown position="top" align="end">
+            <flux:profile
+                class="cursor-pointer"
+                :initials="auth()->user()->initials()" />
+
+            <flux:menu>
+                <flux:menu.radio.group>
+                    <div class="p-0 text-sm font-normal">
+                        <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
+                            <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
+                                <span class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                                    {{ auth()->user()->initials() }}
+                                </span>
+                            </span>
+
+                            <div class="grid flex-1 text-start text-sm leading-tight">
+                                <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
+                                <span class="truncate text-xs">{{ auth()->user()->email }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </flux:menu.radio.group>
+
+                <flux:menu.separator />
+
+                <flux:menu.radio.group>
+                    <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
+                </flux:menu.radio.group>
+
+                <flux:menu.separator />
+
+                <form method="POST" action="{{ route('logout') }}" class="w-full">
+                    @csrf
+                    <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full" data-test="logout-button">
+                        {{ __('Log Out') }}
+                    </flux:menu.item>
+                </form>
+            </flux:menu>
+        </flux:dropdown>
+    </flux:header>
 
     <!-- Search Modal -->
     <div x-show="showSearch" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-start justify-center pt-20" @click="showSearch = false">
